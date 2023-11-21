@@ -21,9 +21,8 @@ func (u *UserServer) AddUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, er
 			fmt.Printf("执行添加用户接口时出错:%v\n", err)
 		}
 	}()
-	var msg *pb.MsgRsp
-	msg.Msg = models.AddUser(*user)
-	return msg, nil
+	msg := models.AddUser(*user)
+	return &pb.MsgRsp{Msg: msg}, nil
 }
 
 // 更新用户信息
@@ -33,9 +32,8 @@ func (u *UserServer) UpdateUser(ctx context.Context, user *pb.User) (*pb.MsgRsp,
 			fmt.Printf("执行更新用户接口时出错:%v\n", err)
 		}
 	}()
-	var msg *pb.MsgRsp
-	msg.Msg = models.UpdateUser(*user)
-	return msg, nil
+	msg := models.UpdateUser(*user)
+	return &pb.MsgRsp{Msg: msg}, nil
 }
 
 // 根据字段更新用户信息
@@ -45,9 +43,8 @@ func (u *UserServer) UpdateUserSingle(ctx context.Context, request *pb.UpdateSin
 			fmt.Printf("执行更新用户字段接口时出错:%v\n", err)
 		}
 	}()
-	var msg *pb.MsgRsp
-	msg.Msg = models.UpdateUserSingle(request.UpdateKey, *request.User)
-	return msg, nil
+	msg := models.UpdateUserSingle(request.UpdateKey, *request.User)
+	return &pb.MsgRsp{Msg: msg}, nil
 }
 
 // 通过id查询用户信息
