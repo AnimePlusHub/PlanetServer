@@ -1,5 +1,9 @@
 package main
 
+import (
+	"PlanetMsg/mail"
+)
+
 func main() {
 	// 新增一个用户
 	// data := make(map[string]interface{})
@@ -42,4 +46,8 @@ func main() {
 	// sourceSlice[1] = 100
 	// fmt.Println("sourceSlice: ", sourceSlice)
 	// fmt.Println("dstSlice: ", dstSlice)
+
+	// redis.Rds()
+
+	mail.SendEmail("1079334524@qq.com")
 }

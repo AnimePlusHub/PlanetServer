@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 )
 
-func setAndGet(ctx context.Context, client *redis.Client) {
+func SetAndGet(ctx context.Context, client *redis.Client) {
 	key := "name"
 	value := "TechAoba"
 	err := client.Set(ctx, key, value, 1*time.Minute).Err() // 如expire时间设为0，表示永久生效
@@ -23,7 +24,7 @@ func setAndGet(ctx context.Context, client *redis.Client) {
 	// client.Del(ctx, key)
 }
 
-func list(ctx context.Context, client *redis.Client) {
+func List(ctx context.Context, client *redis.Client) {
 	key := "lis"
 	values := []interface{}{1, 2, "原神", 66}
 	err := client.RPush(ctx, key, values...).Err()
@@ -36,7 +37,7 @@ func list(ctx context.Context, client *redis.Client) {
 	client.Del(ctx, key)
 }
 
-func hashTable(ctx context.Context, client *redis.Client) {
+func HashTable(ctx context.Context, client *redis.Client) {
 	err := client.HSet(ctx, "用户1", "Name", "张三", "Age", 18, "Height", 173.5).Err()
 	checkError(err)
 
@@ -55,15 +56,31 @@ func hashTable(ctx context.Context, client *redis.Client) {
 }
 
 func Rds() {
+	var HOST, PWD, PORT string
+	var DBID int
+	viper.SetConfigName("mysql")
+	viper.AddConfigPath("./conf") // ./conf or ../../conf
+	viper.AutomaticEnv()
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println(err)
+		panic(fmt.Errorf("读取配置文件失败: %s", err))
+	}
+	// 读取redis配置文件
+	HOST = viper.GetString("redis.HOST")
+	PORT = viper.GetString("redis.PORT")
+	PWD = viper.GetString("redis.PWD")
+	DBID = viper.GetInt("redis.DBID")
+
 	client := redis.NewClient(&redis.Options{
-		Addr:     "182.92.123.43:39006",
-		Password: "Dianzijiaocaiecnu2020.",
-		DB:       0,
+		Addr:     fmt.Sprintf("%s:%s", HOST, PORT),
+		Password: PWD,
+		DB:       DBID,
 	})
 	ctx := context.TODO()
 	// setAndGet(ctx, client)
 	// list(ctx, client)
-	hashTable(ctx, client)
+	HashTable(ctx, client)
 }
 
 func checkError(err error) {
