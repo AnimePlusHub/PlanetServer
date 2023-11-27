@@ -1,6 +1,7 @@
 package mail
 
 import (
+	log "PlanetMsg/pkg/logger"
 	"crypto/tls"
 	"fmt"
 
@@ -14,7 +15,7 @@ var (
 
 func init() {
 	viper.SetConfigName("mail")
-	viper.AddConfigPath("./conf") // ./conf or ../../conf
+	viper.AddConfigPath("../../conf") // ./conf or ../../conf
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -28,13 +29,13 @@ func init() {
 	body = viper.GetString("mail.Body")
 }
 
-func SendEmail(toEmail string) {
+func SendEmail(toEmail, code string) {
 
 	m := gomail.NewMessage()
 	m.SetHeader(`From`, userName)
 	m.SetHeader(`To`, toEmail)
 	m.SetHeader(`Subject`, subject)
-	m.SetBody("text/html", body) // 发送html格式邮件，发送的内容
+	m.SetBody("text/html", body+code) // 发送html格式邮件，发送的内容
 	// if cc != "" {
 	// 	m.SetHeader("Cc", cc)  // 抄送
 	// }
@@ -43,8 +44,8 @@ func SendEmail(toEmail string) {
 	// 修改TLSconfig
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	if err := d.DialAndSend(m); err != nil {
-		fmt.Println("邮件发送失败：", err)
+		log.LogrusObj.Info("邮件发送失败：", err)
 		return
 	}
-	fmt.Println("邮件发送成功！")
+	log.LogrusObj.Info("邮件发送成功！申请邮箱：" + toEmail)
 }

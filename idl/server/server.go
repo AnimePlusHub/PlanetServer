@@ -2,8 +2,13 @@ package main
 
 import (
 	pb "PlanetMsg/idl/proto_gen"
+	"PlanetMsg/mail"
 	"PlanetMsg/models"
+	"PlanetMsg/pkg/signalInfo"
+	"PlanetMsg/pkg/util"
+	"PlanetMsg/redis"
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
@@ -57,6 +62,50 @@ func (u *UserServer) GetUserInfo(ctx context.Context, request *pb.IdReq) (*pb.Us
 	userId := request.UserId
 	user := models.GetUser(userId)
 	return user, nil
+}
+
+func (u *UserServer) RequestValid(ctx context.Context, EmailReq *pb.EmailReq) (res *pb.MsgRsp, err error) {
+	// 验证邮箱格式
+	email := EmailReq.Email
+	res = new(pb.MsgRsp)
+	if util.ValidateEmail(email) == false {
+		res.Msg = signalInfo.GetMsg(signalInfo.EMAIL_FOMAT_FALSE)
+		err = errors.New("邮箱格式错误")
+		return
+	}
+	// 生成随机六位数字
+	validCode := util.GenerateRandom(6)
+	// 插入Redis中，3分钟过期
+	res.Msg, err = redis.Set(email, validCode, 3)
+	// 向用户发送邮件
+	mail.SendEmail(email, validCode)
+	return
+}
+
+func (u *UserServer) CheckValidCode(ctx context.Context, checkEmailReq *pb.CheckEmailReq) (res *pb.MsgRsp, err error) {
+	// 验证邮箱格式
+	email := checkEmailReq.Email
+	code := checkEmailReq.VaildCode
+	res = new(pb.MsgRsp)
+	if util.ValidateEmail(email) == false {
+		res.Msg = signalInfo.GetMsg(signalInfo.EMAIL_FOMAT_FALSE)
+		err = errors.New("邮箱格式错误")
+		return
+	}
+	// 获取邮箱对应验证码
+	rdsCode, resCode := redis.Get(email)
+	// 判断是否获取value成功
+	if resCode != signalInfo.GetMsg(signalInfo.REDIS_SUCCESS) {
+		res.Msg = resCode
+		return
+	}
+	// 判断验证码是否正确
+	if code != rdsCode {
+		res.Msg = signalInfo.GetMsg(signalInfo.VALIDATE_WRONG)
+		return
+	}
+	res.Msg = signalInfo.GetMsg(signalInfo.VALIDATE_PASS)
+	return
 }
 
 func main() {

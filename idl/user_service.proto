@@ -32,6 +32,13 @@ message UpdateSingleReq {	// 修改
 	string updateKey = 1;
 	User user = 2;
 }
+message EmailReq {
+	string email = 1;	// 用户邮箱
+}
+message CheckEmailReq {
+	string email = 1;
+	string vaildCode = 2;
+}
 
 service UserService {
 	// 查询用户
@@ -42,4 +49,8 @@ service UserService {
 	rpc UpdateUserSingle (UpdateSingleReq) returns (MsgRsp) {}
 	// 修改用户信息
 	rpc UpdateUser (User) returns (MsgRsp) {}
+	// 申请验证码（提供用户邮箱），保存redis三分钟
+	rpc RequestValid (EmailReq) returns (MsgRsp) {}
+	// 验证邮箱验证码
+	rpc CheckValidCode (CheckEmailReq) returns (MsgRsp) {}
 }

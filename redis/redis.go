@@ -1,7 +1,9 @@
 package redis
 
 import (
+	"PlanetMsg/pkg/signalInfo"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -10,18 +12,32 @@ import (
 	"github.com/spf13/viper"
 )
 
-func SetAndGet(ctx context.Context, client *redis.Client) {
-	key := "name"
-	value := "TechAoba"
-	err := client.Set(ctx, key, value, 1*time.Minute).Err() // 如expire时间设为0，表示永久生效
-	checkError(err)
+var (
+	client *redis.Client
+	ctx    context.Context
+)
 
-	v2, err := client.Get(ctx, key).Result()
-	checkError(err)
-	fmt.Println(v2)
-
+func Set(key, value string, expire int) (string, error) {
+	err := client.Set(ctx, key, value, time.Duration(expire)*time.Minute).Err() // 如expire时间设为0，表示永久生效
+	if err != nil {
+		return signalInfo.GetMsg(signalInfo.REDIS_FAIL), errors.New("Redis插入失败") // Redis插入失败
+	}
+	return signalInfo.GetMsg(signalInfo.REDIS_SUCCESS), nil // Redis插入成功
 	// 删除插入的key
 	// client.Del(ctx, key)
+}
+
+// 根据Key值获取Value
+func Get(key string) (value, signal string) {
+	value, err := client.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return "", signalInfo.GetMsg(signalInfo.REDIS_KEY_NOT_EXIST) // Redis不存在key
+	}
+	if err != nil {
+		return "", signalInfo.GetMsg(signalInfo.REDIS_FAIL) // Redis查询失败
+	}
+	signal = signalInfo.GetMsg(signalInfo.REDIS_SUCCESS)
+	return
 }
 
 func List(ctx context.Context, client *redis.Client) {
@@ -55,7 +71,7 @@ func HashTable(ctx context.Context, client *redis.Client) {
 	client.Del(ctx, "用户2")
 }
 
-func Rds() {
+func init() {
 	var HOST, PWD, PORT string
 	var DBID int
 	viper.SetConfigName("mysql")
@@ -72,15 +88,12 @@ func Rds() {
 	PWD = viper.GetString("redis.PWD")
 	DBID = viper.GetInt("redis.DBID")
 
-	client := redis.NewClient(&redis.Options{
+	client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", HOST, PORT),
 		Password: PWD,
 		DB:       DBID,
 	})
-	ctx := context.TODO()
-	// setAndGet(ctx, client)
-	// list(ctx, client)
-	HashTable(ctx, client)
+	ctx = context.TODO()
 }
 
 func checkError(err error) {

@@ -23,6 +23,8 @@ const (
 	UserService_AddUser_FullMethodName          = "/idl.UserService/AddUser"
 	UserService_UpdateUserSingle_FullMethodName = "/idl.UserService/UpdateUserSingle"
 	UserService_UpdateUser_FullMethodName       = "/idl.UserService/UpdateUser"
+	UserService_RequestValid_FullMethodName     = "/idl.UserService/RequestValid"
+	UserService_CheckValidCode_FullMethodName   = "/idl.UserService/CheckValidCode"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -37,6 +39,10 @@ type UserServiceClient interface {
 	UpdateUserSingle(ctx context.Context, in *UpdateSingleReq, opts ...grpc.CallOption) (*MsgRsp, error)
 	// 修改用户信息
 	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*MsgRsp, error)
+	// 申请验证码（提供用户邮箱），保存redis三分钟
+	RequestValid(ctx context.Context, in *EmailReq, opts ...grpc.CallOption) (*MsgRsp, error)
+	// 验证邮箱验证码
+	CheckValidCode(ctx context.Context, in *CheckEmailReq, opts ...grpc.CallOption) (*MsgRsp, error)
 }
 
 type userServiceClient struct {
@@ -83,6 +89,24 @@ func (c *userServiceClient) UpdateUser(ctx context.Context, in *User, opts ...gr
 	return out, nil
 }
 
+func (c *userServiceClient) RequestValid(ctx context.Context, in *EmailReq, opts ...grpc.CallOption) (*MsgRsp, error) {
+	out := new(MsgRsp)
+	err := c.cc.Invoke(ctx, UserService_RequestValid_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CheckValidCode(ctx context.Context, in *CheckEmailReq, opts ...grpc.CallOption) (*MsgRsp, error) {
+	out := new(MsgRsp)
+	err := c.cc.Invoke(ctx, UserService_CheckValidCode_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -95,6 +119,10 @@ type UserServiceServer interface {
 	UpdateUserSingle(context.Context, *UpdateSingleReq) (*MsgRsp, error)
 	// 修改用户信息
 	UpdateUser(context.Context, *User) (*MsgRsp, error)
+	// 申请验证码（提供用户邮箱），保存redis三分钟
+	RequestValid(context.Context, *EmailReq) (*MsgRsp, error)
+	// 验证邮箱验证码
+	CheckValidCode(context.Context, *CheckEmailReq) (*MsgRsp, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -113,6 +141,12 @@ func (UnimplementedUserServiceServer) UpdateUserSingle(context.Context, *UpdateS
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *User) (*MsgRsp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedUserServiceServer) RequestValid(context.Context, *EmailReq) (*MsgRsp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestValid not implemented")
+}
+func (UnimplementedUserServiceServer) CheckValidCode(context.Context, *CheckEmailReq) (*MsgRsp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckValidCode not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -199,6 +233,42 @@ func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_RequestValid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RequestValid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RequestValid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RequestValid(ctx, req.(*EmailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CheckValidCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckEmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CheckValidCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CheckValidCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CheckValidCode(ctx, req.(*CheckEmailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -221,6 +291,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUser",
 			Handler:    _UserService_UpdateUser_Handler,
+		},
+		{
+			MethodName: "RequestValid",
+			Handler:    _UserService_RequestValid_Handler,
+		},
+		{
+			MethodName: "CheckValidCode",
+			Handler:    _UserService_CheckValidCode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

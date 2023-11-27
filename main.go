@@ -1,9 +1,5 @@
 package main
 
-import (
-	"PlanetMsg/mail"
-)
-
 func main() {
 	// 新增一个用户
 	// data := make(map[string]interface{})
@@ -49,5 +45,6 @@ func main() {
 
 	// redis.Rds()
 
-	mail.SendEmail("1079334524@qq.com")
+	// mail.SendEmail("1079334524@qq.com")
+	// log.LogrusObj.Info("new")
 }
