@@ -28,6 +28,7 @@ func (u *UserServer) AddUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, er
 			logger.LogrusObj.Printf("执行添加用户接口时出错:%v\n", err)
 		}
 	}()
+	logger.LogrusObj.Printf("调用查询用户接口")
 	msg, err := models.AddUser(*user)
 	return &pb.MsgRsp{Msg: msg}, err
 }
@@ -36,7 +37,7 @@ func (u *UserServer) AddUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, er
 func (u *UserServer) UpdateUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, error) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Printf("执行更新用户接口时出错:%v\n", err)
+			logger.LogrusObj.Printf("执行更新用户接口时出错:%v\n", err)
 		}
 	}()
 	msg := models.UpdateUser(*user)
@@ -58,7 +59,7 @@ func (u *UserServer) UpdateUserSingle(ctx context.Context, request *pb.UpdateSin
 func (u *UserServer) GetUserInfo(ctx context.Context, request *pb.IdReq) (*pb.User, error) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Printf("执行查询用户接口时出错:%v\n", err)
+			logger.LogrusObj.Printf("执行查询用户接口时出错:%v\n", err)
 		}
 	}()
 	userId := request.UserId
