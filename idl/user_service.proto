@@ -28,16 +28,25 @@ message IdReq {		// 用户ID
 message MsgRsp {	// 响应码
 	string msg = 1;
 }
-message UpdateSingleReq {	// 修改
+message UpdateSingleReq {	// 用户修改
 	string updateKey = 1;
 	User user = 2;
 }
-message EmailReq {
-	string email = 1;	// 用户邮箱
+message EmailReq {		// 邮箱请求验证码
+	string email = 1;	
 }
-message CheckEmailReq {
+message CheckEmailReq {	// 邮箱验证
 	string email = 1;
 	string vaildCode = 2;
+}
+message LoginReq {		// 用户登陆请求
+	string loginName = 1;
+	string pwd = 2;
+}
+message TokenRsp {		// 用户的Access Token和Refresh Token
+	string Atoken = 1;
+	string Rtoken = 2;
+	string msg = 3;
 }
 
 service UserService {
@@ -53,4 +62,6 @@ service UserService {
 	rpc RequestValid (EmailReq) returns (MsgRsp) {}
 	// 验证邮箱验证码
 	rpc CheckValidCode (CheckEmailReq) returns (MsgRsp) {}
+	// 用户登陆验证
+	rpc Login (LoginReq) returns (TokenRsp) {}
 }

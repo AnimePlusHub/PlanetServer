@@ -1,5 +1,10 @@
 package main
 
+import (
+	"PlanetMsg/pkg/util"
+	"fmt"
+)
+
 func main() {
 	// 新增一个用户
 	// data := make(map[string]interface{})
@@ -47,4 +52,8 @@ func main() {
 
 	// mail.SendEmail("1079334524@qq.com")
 	// log.LogrusObj.Info("new")
+
+	str := "pwd"
+	fmt.Println(util.MD5(str))
+	fmt.Println(len("9003d1df22eb4d3820015070385194c8"))
 }

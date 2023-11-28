@@ -4,6 +4,8 @@ import (
 	pb "PlanetMsg/idl/proto_gen"
 	"PlanetMsg/mail"
 	"PlanetMsg/models"
+	"PlanetMsg/pkg/jwt"
+	"PlanetMsg/pkg/logger"
 	"PlanetMsg/pkg/signalInfo"
 	"PlanetMsg/pkg/util"
 	"PlanetMsg/redis"
@@ -23,11 +25,11 @@ type UserServer struct {
 func (u *UserServer) AddUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, error) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Printf("执行添加用户接口时出错:%v\n", err)
+			logger.LogrusObj.Printf("执行添加用户接口时出错:%v\n", err)
 		}
 	}()
-	msg := models.AddUser(*user)
-	return &pb.MsgRsp{Msg: msg}, nil
+	msg, err := models.AddUser(*user)
+	return &pb.MsgRsp{Msg: msg}, err
 }
 
 // 更新用户信息
@@ -105,6 +107,40 @@ func (u *UserServer) CheckValidCode(ctx context.Context, checkEmailReq *pb.Check
 		return
 	}
 	res.Msg = signalInfo.GetMsg(signalInfo.VALIDATE_PASS)
+	return
+}
+
+func (u *UserServer) Login(ctx context.Context, loginReq *pb.LoginReq) (res *pb.TokenRsp, err error) {
+	res = new(pb.TokenRsp)
+	loginName := loginReq.LoginName
+	pwd := loginReq.Pwd
+	var userId int32
+	var account string
+	// 判断用户的登录方式（邮箱 or Account）
+	if util.ValidateEmail(loginName) { // 邮箱方式登录
+		user := models.GetUserByEmail(loginName)
+		userId = user.Id
+		account = user.Account
+	} else { // Account方式登录
+		userId = models.GetIdByAccount(loginName)
+		account = loginName
+	}
+	if userId == 0 { // 未找到用户
+		res.Msg = signalInfo.GetMsg(signalInfo.ERROR_USER_NOT_FOUND)
+		err = errors.New(signalInfo.GetMsg(signalInfo.ERROR_USER_NOT_FOUND))
+		return
+	}
+	pwd = util.MD5(pwd)
+	userPwd := models.GetPwdById(userId)
+	if pwd != userPwd { // 密码错误
+		res.Msg = signalInfo.GetMsg(signalInfo.ERROR_WRONG_PWD)
+		err = errors.New(signalInfo.GetMsg(signalInfo.ERROR_WRONG_PWD))
+		return
+	}
+	res.Atoken, res.Rtoken, err = jwt.GenToken(int(userId), account)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 

@@ -11,6 +11,9 @@ var MsgFlags = map[int]string{
 	ERROR_AUTH:                     "AToken错误",
 	ERROR_RAUTH_TIMEOUT:            "RToken已超时",
 
+	ERROR_USER_NOT_FOUND: "未找到用户",
+	ERROR_WRONG_PWD:      "密码错误",
+
 	REDIS_SUCCESS:       "Redis操作成功",
 	REDIS_FAIL:          "Redis操作失败",
 	REDIS_KEY_NOT_EXIST: "Redis Key值不存在",

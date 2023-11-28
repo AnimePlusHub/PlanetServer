@@ -15,7 +15,7 @@ CREATE TABLE `friend` (
   `friend_id` int(11) NOT NULL COMMENT '好友id',
   `group_id` int(11) NOT NULL COMMENT '分组id',
   `remark` varchar(20) NOT NULL COMMENT '好友备注',
-  `create_time` date NOT NULL COMMENT '添加时间',
+  `create_time` bigint NOT NULL COMMENT '添加时间',
   `add_way` varchar(20) NOT NULL COMMENT '添加方式',
   PRIMARY KEY (`user_id`,`friend_id`) USING BTREE,
   KEY `user_id` (`user_id`) USING BTREE,
@@ -45,16 +45,16 @@ CREATE TABLE `friend_group` (
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户id主键',
-  `account` varchar(20) NOT NULL COMMENT '用户账号',
+  `account` varchar(20) NOT NULL UNIQUE COMMENT '用户账号',
   `nick_name` varchar(20) NOT NULL COMMENT '用户昵称',
-  `pwd` varchar(72) NOT NULL COMMENT '用户密码',
-  `email` varchar(25) DEFAULT NULL COMMENT '邮箱',
+  `pwd` char(32) NOT NULL COMMENT '用户密码',
+  `email` varchar(25) DEFAULT NULL UNIQUE COMMENT '邮箱',
   `phone` char(11) DEFAULT NULL COMMENT '手机号',
   `pic_url` varchar(72) NOT NULL COMMENT '用户头像',
-  `birth_day` date DEFAULT NULL COMMENT '生日',
-  `create_time` date NOT NULL COMMENT '注册时间',
+  `birth_day` bigint DEFAULT NULL COMMENT '生日',
+  `create_time` bigint NOT NULL COMMENT '注册时间',
   `status` tinyint(4) DEFAULT NULL COMMENT '用户状态（在线、离线。。）',
-  `last_login_time` datetime DEFAULT NULL COMMENT '最后登陆时间',
+  `last_login_time` bigint DEFAULT NULL COMMENT '最后登陆时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
