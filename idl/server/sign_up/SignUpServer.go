@@ -1,73 +1,37 @@
 package main
 
 import (
-	pb "PlanetMsg/idl/proto_gen"
+	pb "PlanetMsg/idl/proto_gen/sign_up"
 	"PlanetMsg/mail"
 	"PlanetMsg/models"
-	"PlanetMsg/pkg/jwt"
+	jwtUtil "PlanetMsg/pkg/jwt"
 	"PlanetMsg/pkg/logger"
 	"PlanetMsg/pkg/signalInfo"
 	"PlanetMsg/pkg/util"
 	"PlanetMsg/redis"
 	"context"
 	"errors"
-	"fmt"
 	"net"
 
 	"google.golang.org/grpc"
 )
 
-type UserServer struct {
-	pb.UnimplementedUserServiceServer
+type SignUpServer struct {
+	pb.UnimplementedSignUpServiceServer
 }
 
 // 添加用户
-func (u *UserServer) AddUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, error) {
+func (u *SignUpServer) AddUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.LogrusObj.Printf("执行添加用户接口时出错:%v\n", err)
 		}
 	}()
-	logger.LogrusObj.Printf("调用查询用户接口")
 	msg, err := models.AddUser(*user)
 	return &pb.MsgRsp{Msg: msg}, err
 }
 
-// 更新用户信息
-func (u *UserServer) UpdateUser(ctx context.Context, user *pb.User) (*pb.MsgRsp, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			logger.LogrusObj.Printf("执行更新用户接口时出错:%v\n", err)
-		}
-	}()
-	msg := models.UpdateUser(*user)
-	return &pb.MsgRsp{Msg: msg}, nil
-}
-
-// 根据字段更新用户信息
-func (u *UserServer) UpdateUserSingle(ctx context.Context, request *pb.UpdateSingleReq) (*pb.MsgRsp, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Printf("执行更新用户字段接口时出错:%v\n", err)
-		}
-	}()
-	msg := models.UpdateUserSingle(request.UpdateKey, *request.User)
-	return &pb.MsgRsp{Msg: msg}, nil
-}
-
-// 通过id查询用户信息
-func (u *UserServer) GetUserInfo(ctx context.Context, request *pb.IdReq) (*pb.User, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			logger.LogrusObj.Printf("执行查询用户接口时出错:%v\n", err)
-		}
-	}()
-	userId := request.UserId
-	user := models.GetUser(userId)
-	return user, nil
-}
-
-func (u *UserServer) RequestValid(ctx context.Context, EmailReq *pb.EmailReq) (res *pb.MsgRsp, err error) {
+func (u *SignUpServer) RequestValid(ctx context.Context, EmailReq *pb.EmailReq) (res *pb.MsgRsp, err error) {
 	// 验证邮箱格式
 	email := EmailReq.Email
 	res = new(pb.MsgRsp)
@@ -85,7 +49,7 @@ func (u *UserServer) RequestValid(ctx context.Context, EmailReq *pb.EmailReq) (r
 	return
 }
 
-func (u *UserServer) CheckValidCode(ctx context.Context, checkEmailReq *pb.CheckEmailReq) (res *pb.MsgRsp, err error) {
+func (u *SignUpServer) CheckValidCode(ctx context.Context, checkEmailReq *pb.CheckEmailReq) (res *pb.MsgRsp, err error) {
 	// 验证邮箱格式
 	email := checkEmailReq.Email
 	code := checkEmailReq.VaildCode
@@ -111,7 +75,7 @@ func (u *UserServer) CheckValidCode(ctx context.Context, checkEmailReq *pb.Check
 	return
 }
 
-func (u *UserServer) Login(ctx context.Context, loginReq *pb.LoginReq) (res *pb.TokenRsp, err error) {
+func (u *SignUpServer) Login(ctx context.Context, loginReq *pb.LoginReq) (res *pb.TokenRsp, err error) {
 	res = new(pb.TokenRsp)
 	loginName := loginReq.LoginName
 	pwd := loginReq.Pwd
@@ -138,7 +102,7 @@ func (u *UserServer) Login(ctx context.Context, loginReq *pb.LoginReq) (res *pb.
 		err = errors.New(signalInfo.GetMsg(signalInfo.ERROR_WRONG_PWD))
 		return
 	}
-	res.Atoken, res.Rtoken, err = jwt.GenToken(int(userId), account)
+	res.Atoken, res.Rtoken, err = jwtUtil.GenToken(userId, account)
 	if err != nil {
 		return nil, err
 	}
@@ -146,14 +110,21 @@ func (u *UserServer) Login(ctx context.Context, loginReq *pb.LoginReq) (res *pb.
 }
 
 func main() {
-	list, err := net.Listen("tcp", ":39001")
+	// TLS
+	// c, err := credentials.NewServerTLSFromFile("../keys/server.pem", "../keys/server.key")
+	// if err != nil {
+	// 	logger.LogrusObj.Panic("获取TLS证书失败：%v", err)
+	// }
+
+	list, err := net.Listen("tcp", ":39000")
 	if err != nil {
-		panic(err)
+		logger.LogrusObj.Panic("端口请求失败：%v", err)
 	}
+	// server := grpc.NewServer(grpc.Creds(c))		// 开启TLS
 	server := grpc.NewServer()
-	pb.RegisterUserServiceServer(server, new(UserServer))
+	pb.RegisterSignUpServiceServer(server, new(SignUpServer))
 	err = server.Serve(list)
 	if err != nil {
-		panic(err)
+		logger.LogrusObj.Panic("用户服务上线失败：%v", err)
 	}
 }

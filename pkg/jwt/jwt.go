@@ -1,4 +1,4 @@
-package jwt
+package jwtUtil
 
 import (
 	"PlanetMsg/pkg/signalInfo"
@@ -19,14 +19,14 @@ var (
 )
 
 type UserClaim struct {
-	UserID  int    `json:"user_id"`
+	UserID  int32  `json:"user_id"`
 	Account string `json:"account"`
 	jwt.RegisteredClaims
 }
 
 func init() {
 	viper.SetConfigName("jwt")
-	viper.AddConfigPath("./conf")
+	viper.AddConfigPath("../../../conf")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -61,7 +61,7 @@ func keyFunc(token *jwt.Token) (interface{}, error) {
 }
 
 // 颁发访问令牌（Access Token）和刷新令牌（Refresh Token）
-func GenToken(userId int, account string) (atoken string, rtoken string, err error) {
+func GenToken(userId int32, account string) (atoken string, rtoken string, err error) {
 	rc := jwt.RegisteredClaims{
 		ExpiresAt: getJWTTime(ATokenExpiredDuration),
 		Issuer:    TokenIssuer,

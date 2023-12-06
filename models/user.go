@@ -1,14 +1,15 @@
 package models
 
 import (
-	user_service "PlanetMsg/idl/proto_gen"
+	sign_up_service "PlanetMsg/idl/proto_gen/sign_up"
+	user_service "PlanetMsg/idl/proto_gen/user"
 	"PlanetMsg/pkg/signalInfo"
 	"PlanetMsg/pkg/util"
 	// "gorm.io/gorm"
 )
 
 // 添加用户
-func AddUser(user user_service.User) (string, error) {
+func AddUser(user sign_up_service.User) (string, error) {
 	user.Pwd = util.MD5(user.Pwd)
 	result := db.Create(&user)
 	if result.Error != nil {
@@ -18,10 +19,13 @@ func AddUser(user user_service.User) (string, error) {
 }
 
 // 查询用户
-func GetUser(userId int32) *user_service.User {
+func GetUser(userId int32) (*user_service.User, error) {
 	var user user_service.User
-	db.Where("id=?", userId).Find(&user)
-	return &user
+	result := db.First(&user, userId)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
 }
 
 // 通过邮箱查询用户

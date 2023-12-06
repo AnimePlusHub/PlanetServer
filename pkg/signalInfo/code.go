@@ -10,6 +10,7 @@ const (
 	ERROR_AUTH_TOKEN               = 20003
 	ERROR_AUTH                     = 20004
 	ERROR_RAUTH_TIMEOUT            = 20005
+	MISS_TOKEN                     = 20006
 
 	ERROR_USER_NOT_FOUND = 31001
 	ERROR_WRONG_PWD      = 31002

@@ -1,0 +1,38 @@
+syntax = "proto3";
+package user_idl;
+
+option go_package="./proto_gen/user;user_service";
+
+message User {
+  int32 Id = 1;
+  string Account = 2;
+  string NickName = 3;
+  string Pwd = 4;
+  string Email = 5;
+  string Phone = 6;
+  string PicUrl = 7;
+  int64 BirthDay = 8;
+  int64 CreateTime = 9;
+  int32 Status = 10;
+  int64 LastLoginTime = 11;
+}
+
+message IdReq { // 用户ID
+  int32 userId = 1;
+}
+message MsgRsp { // 响应码
+  string msg = 1;
+}
+message UpdateSingleReq { // 用户修改
+  string updateKey = 1;
+  User user = 2;
+}
+
+service UserService {
+  // 查询用户
+  rpc GetUserInfo(IdReq) returns (User) {}
+  // 通过字段修改用户信息
+  rpc UpdateUserSingle(UpdateSingleReq) returns (MsgRsp) {}
+  // 修改用户信息
+  rpc UpdateUser(User) returns (MsgRsp) {}
+}

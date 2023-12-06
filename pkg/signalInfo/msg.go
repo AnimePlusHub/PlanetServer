@@ -10,6 +10,7 @@ var MsgFlags = map[int]string{
 	ERROR_AUTH_TOKEN:               "AToken生成失败",
 	ERROR_AUTH:                     "AToken错误",
 	ERROR_RAUTH_TIMEOUT:            "RToken已超时",
+	MISS_TOKEN:                     "缺少access token",
 
 	ERROR_USER_NOT_FOUND: "未找到用户",
 	ERROR_WRONG_PWD:      "密码错误",

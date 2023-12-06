@@ -15,7 +15,7 @@ var (
 
 func init() {
 	viper.SetConfigName("mail")
-	viper.AddConfigPath("../../conf") // ./conf or ../../conf
+	viper.AddConfigPath("../../../conf") // ./conf or ../../conf
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {

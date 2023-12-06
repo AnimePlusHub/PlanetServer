@@ -22,7 +22,7 @@ var db *gorm.DB
 func init() {
 	var dbName, dbUser, dbPwd, host string
 	viper.SetConfigName("mysql")
-	viper.AddConfigPath("../../conf")
+	viper.AddConfigPath("../../../conf")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
